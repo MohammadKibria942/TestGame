@@ -114,4 +114,11 @@ public class Cannon : SlotMachineCharacter
         GameSceneManager.Instance.NextTurn();
     }
 
+    public void EnableSpin(bool enabled)
+    {
+        if (spinButton != null)
+            spinButton.interactable = enabled;
+    }
+
+
 }

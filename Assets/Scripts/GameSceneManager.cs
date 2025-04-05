@@ -168,42 +168,53 @@ public class GameSceneManager : MonoBehaviour
         currentTurnIndex = 0;
     }
 
-    public void NextTurn()
+public void NextTurn()
+{
+    if (turnOrder.Count == 0) return;
+
+    currentTurnIndex++;
+
+    if (currentTurnIndex >= turnOrder.Count)
+        currentTurnIndex = 0;
+
+    BaseCharacter currentCharacter = turnOrder[currentTurnIndex];
+
+    if (currentCharacter == null || !currentCharacter.gameObject.activeSelf)
     {
-        if (turnOrder.Count == 0) return;
-
-        currentTurnIndex++;
-
-        // Loop back to start if we reach the end
-        if (currentTurnIndex >= turnOrder.Count)
-            currentTurnIndex = 0;
-
-        BaseCharacter currentCharacter = turnOrder[currentTurnIndex];
-
-        if (currentCharacter == null || !currentCharacter.gameObject.activeSelf)
-        {
-            // Skip dead or disabled characters
-            NextTurn();
-            return;
-        }
-
-        // PLAYER TURN
-        if (currentCharacter.CompareTag("Player"))
-        {
-            isPlayerTurn = true;
-            Debug.Log("Player's turn: " + currentCharacter.name);
-            // Wait for player to act (e.g., spin button)
-        }
-        else // ENEMY TURN
-        {
-            isPlayerTurn = false;
-            Debug.Log("Enemy's turn: " + currentCharacter.name);
-            HandleEnemyTurn(currentCharacter);
-        }
-
-        turnOrderUI.UpdateTurnOrder(turnOrder, currentTurnIndex);
-
+        NextTurn(); // Skip dead or disabled characters
+        return;
     }
+
+    //Disable spin buttons for all players
+    foreach (var player in spawnedPlayers)
+    {
+        var cannon = player.GetComponent<Cannon>();
+        if (cannon != null)
+            cannon.EnableSpin(false);
+    }
+
+    //PLAYER TURN
+    if (currentCharacter.CompareTag("Player"))
+    {
+        isPlayerTurn = true;
+        Debug.Log("Player's turn: " + currentCharacter.name);
+
+        //Enable spin for this player only
+        var cannon = currentCharacter.GetComponent<Cannon>();
+        if (cannon != null)
+            cannon.EnableSpin(true);
+    }
+    else //ENEMY TURN
+    {
+        isPlayerTurn = false;
+        Debug.Log("Enemy's turn: " + currentCharacter.name);
+        HandleEnemyTurn(currentCharacter);
+    }
+
+    //Update the Turn UI
+    turnOrderUI.UpdateTurnOrder(turnOrder, currentTurnIndex);
+}
+
 
     private void HandleEnemyTurn(BaseCharacter enemyCharacter)
     {
