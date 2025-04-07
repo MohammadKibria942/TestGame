@@ -40,8 +40,6 @@ public class GameSceneManager : MonoBehaviour
         turnOrderUI = FindObjectOfType<TurnOrderUI>();
         turnOrderUI.UpdateTurnOrder(turnOrder, currentTurnIndex);
 
-
-        // Add all players
         foreach (var player in spawnedPlayers)
         {
             var character = player.GetComponent<BaseCharacter>();
@@ -49,7 +47,6 @@ public class GameSceneManager : MonoBehaviour
                 turnOrder.Add(character);
         }
 
-        // Add all enemies
         foreach (var enemy in spawnedEnemies)
         {
             var character = enemy.GetComponent<BaseCharacter>();
@@ -57,19 +54,29 @@ public class GameSceneManager : MonoBehaviour
                 turnOrder.Add(character);
         }
 
-        // Sort by speed (highest to lowest)
         turnOrder = turnOrder.OrderByDescending(c => c.speed).ToList();
 
-        // Start first turn
-        currentTurnIndex = -1; // So it starts at index 0 after NextTurn()
+        currentTurnIndex = -1;
         NextTurn();
-
     }
 
     public void SetTargetEnemy(GameObject enemy)
     {
         if (!isPlayerTurn) return;
+
+        if (selectedEnemy == enemy || enemy == null || !enemy.activeSelf)
+            return;
+
         selectedEnemy = enemy;
+        Debug.Log("Targeted Enemy: " + enemy.name);
+
+        BaseCharacter currentCharacter = turnOrder[currentTurnIndex];
+        if (currentCharacter != null && currentCharacter.CompareTag("Player"))
+        {
+            var cannon = currentCharacter.GetComponent<Cannon>();
+            if (cannon != null)
+                cannon.EnableSpin(true);
+        }
     }
 
     private void SpawnPlayers()
@@ -146,7 +153,6 @@ public class GameSceneManager : MonoBehaviour
     {
         turnOrder.Clear();
 
-        // Add players
         foreach (GameObject player in spawnedPlayers)
         {
             var character = player.GetComponent<BaseCharacter>();
@@ -154,7 +160,6 @@ public class GameSceneManager : MonoBehaviour
                 turnOrder.Add(character);
         }
 
-        // Add enemies
         foreach (GameObject enemy in spawnedEnemies)
         {
             var character = enemy.GetComponent<BaseCharacter>();
@@ -162,63 +167,67 @@ public class GameSceneManager : MonoBehaviour
                 turnOrder.Add(character);
         }
 
-        // Sort by speed descending
         turnOrder = turnOrder.OrderByDescending(c => c.speed).ToList();
-
         currentTurnIndex = 0;
     }
 
-public void NextTurn()
-{
-    if (turnOrder.Count == 0) return;
-
-    currentTurnIndex++;
-
-    if (currentTurnIndex >= turnOrder.Count)
-        currentTurnIndex = 0;
-
-    BaseCharacter currentCharacter = turnOrder[currentTurnIndex];
-
-    if (currentCharacter == null || !currentCharacter.gameObject.activeSelf)
+    public void NextTurn()
     {
-        NextTurn(); // Skip dead or disabled characters
-        return;
+        if (turnOrder.Count == 0) return;
+
+        currentTurnIndex++;
+        if (currentTurnIndex >= turnOrder.Count)
+            currentTurnIndex = 0;
+
+        BaseCharacter currentCharacter = turnOrder[currentTurnIndex];
+
+        if (currentCharacter == null || !currentCharacter.gameObject.activeSelf)
+        {
+            NextTurn(); // Skip dead or disabled characters
+            return;
+        }
+
+        foreach (var player in spawnedPlayers)
+        {
+            var cannon = player.GetComponent<Cannon>();
+            if (cannon != null)
+                cannon.EnableSpin(false);
+        }
+
+        if (currentCharacter.CompareTag("Player"))
+        {
+            isPlayerTurn = true;
+            Debug.Log("Player's turn: " + currentCharacter.name);
+
+            if (selectedEnemy == null || !selectedEnemy.activeSelf)
+            {
+                selectedEnemy = null;
+
+                var cannon = currentCharacter.GetComponent<Cannon>();
+                if (cannon != null)
+                    cannon.EnableSpin(false);
+
+                Debug.Log("No valid enemy selected. Please select a new target.");
+            }
+            else
+            {
+                var cannon = currentCharacter.GetComponent<Cannon>();
+                if (cannon != null)
+                    cannon.EnableSpin(true);
+            }
+        }
+        else
+        {
+            isPlayerTurn = false;
+            Debug.Log("Enemy's turn: " + currentCharacter.name);
+            HandleEnemyTurn(currentCharacter);
+        }
+
+        turnOrderUI.UpdateTurnOrder(turnOrder, currentTurnIndex);
     }
-
-    //Disable spin buttons for all players
-    foreach (var player in spawnedPlayers)
-    {
-        var cannon = player.GetComponent<Cannon>();
-        if (cannon != null)
-            cannon.EnableSpin(false);
-    }
-
-    //PLAYER TURN
-    if (currentCharacter.CompareTag("Player"))
-    {
-        isPlayerTurn = true;
-        Debug.Log("Player's turn: " + currentCharacter.name);
-
-        //Enable spin for this player only
-        var cannon = currentCharacter.GetComponent<Cannon>();
-        if (cannon != null)
-            cannon.EnableSpin(true);
-    }
-    else //ENEMY TURN
-    {
-        isPlayerTurn = false;
-        Debug.Log("Enemy's turn: " + currentCharacter.name);
-        HandleEnemyTurn(currentCharacter);
-    }
-
-    //Update the Turn UI
-    turnOrderUI.UpdateTurnOrder(turnOrder, currentTurnIndex);
-}
-
 
     private void HandleEnemyTurn(BaseCharacter enemyCharacter)
     {
-        // Pick a random player target
         var alivePlayers = spawnedPlayers
             .Where(p => p.activeSelf)
             .Select(p => p.GetComponent<BaseCharacter>())
@@ -232,11 +241,8 @@ public void NextTurn()
         }
 
         BaseCharacter target = alivePlayers[Random.Range(0, alivePlayers.Count)];
-
-        // Enemy attacks
         enemyCharacter.Attack(target);
 
-        // Continue to next turn after short delay
-        Invoke(nameof(NextTurn), 1.5f); // Optional delay for animation or feedback
+        Invoke(nameof(NextTurn), 1.5f);
     }
 }
