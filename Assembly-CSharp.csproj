@@ -64,19 +64,15 @@
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\2022.3.16f1-x86_64\Editor\Data\Tools\Unity.SourceGenerators\Unity.Properties.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\SlotMachine.cs" />
     <Compile Include="Assets\Scripts\Characters\SlotMachineCharacter.cs" />
     <Compile Include="Assets\Scripts\Characters\Cannon.cs" />
-    <Compile Include="Assets\Scripts\Characters\HealthManager.cs" />
-    <Compile Include="Assets\Scripts\EnemyTargeting.cs" />
+    <Compile Include="Assets\Scripts\Managers\GameSceneManager.cs" />
+    <Compile Include="Assets\Scripts\Characters\CharacterData.cs" />
     <Compile Include="Assets\Scripts\Characters\BaseCharacter.cs" />
-    <Compile Include="Assets\Scripts\TurnOrderUI.cs" />
-    <Compile Include="Assets\Scripts\NumbersSelectionScene\NumberSelectionManager.cs" />
-    <Compile Include="Assets\Scripts\Character Selection\CharacterSelectionManager.cs" />
-    <Compile Include="Assets\Scripts\GameSceneManager.cs" />
-    <Compile Include="Assets\Scripts\GameManager.cs" />
-    <Compile Include="Assets\Scripts\Character Selection\CharacterData.cs" />
-    <Compile Include="Assets\Scripts\NumbersSelectionScene\RowButtonManager.cs" />
+    <Compile Include="Assets\Scripts\UI\EnemyTargeting.cs" />
+    <Compile Include="Assets\Scripts\Characters\SlotMachine.cs" />
+    <Compile Include="Assets\Scripts\Managers\CharacterSelectionManager.cs" />
+    <Compile Include="Assets\Scripts\UI\TurnOrderUI.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

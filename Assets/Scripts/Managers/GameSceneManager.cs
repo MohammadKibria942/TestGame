@@ -36,25 +36,9 @@ public class GameSceneManager : MonoBehaviour
         SpawnPlayers();
         SpawnEnemies();
 
-        turnOrder = new List<BaseCharacter>();
         turnOrderUI = FindObjectOfType<TurnOrderUI>();
-        turnOrderUI.UpdateTurnOrder(turnOrder, currentTurnIndex);
 
-        foreach (var player in spawnedPlayers)
-        {
-            var character = player.GetComponent<BaseCharacter>();
-            if (character != null)
-                turnOrder.Add(character);
-        }
-
-        foreach (var enemy in spawnedEnemies)
-        {
-            var character = enemy.GetComponent<BaseCharacter>();
-            if (character != null)
-                turnOrder.Add(character);
-        }
-
-        turnOrder = turnOrder.OrderByDescending(c => c.speed).ToList();
+        BuildTurnOrder(); // Refactored usage here
 
         currentTurnIndex = -1;
         NextTurn();
@@ -93,7 +77,6 @@ public class GameSceneManager : MonoBehaviour
         for (int i = 0; i < characterIDs.Length && i < playerSpawnPoints.Length; i++)
         {
             RectTransform spawnPoint = playerSpawnPoints[i];
-
             GameObject playerInstance = Instantiate(playerPrefab);
             playerInstance.name = "Player_" + characterIDs[i];
 
@@ -117,7 +100,6 @@ public class GameSceneManager : MonoBehaviour
         for (int i = 0; i < enemyCount; i++)
         {
             RectTransform spawnPoint = enemySpawnPoints[i];
-
             GameObject enemyInstance = Instantiate(enemyPrefab);
             enemyInstance.name = "Enemy_" + (i + 1);
 
@@ -144,9 +126,7 @@ public class GameSceneManager : MonoBehaviour
 
         RectTransform rectTransform = characterInstance.GetComponent<RectTransform>();
         if (rectTransform != null)
-        {
             rectTransform.anchoredPosition = anchoredPosition;
-        }
     }
 
     private void BuildTurnOrder()
@@ -169,6 +149,9 @@ public class GameSceneManager : MonoBehaviour
 
         turnOrder = turnOrder.OrderByDescending(c => c.speed).ToList();
         currentTurnIndex = 0;
+
+        if (turnOrderUI != null)
+            turnOrderUI.UpdateTurnOrder(turnOrder, currentTurnIndex);
     }
 
     public void NextTurn()
@@ -183,7 +166,7 @@ public class GameSceneManager : MonoBehaviour
 
         if (currentCharacter == null || !currentCharacter.gameObject.activeSelf)
         {
-            NextTurn(); // Skip dead or disabled characters
+            NextTurn();
             return;
         }
 
@@ -202,7 +185,6 @@ public class GameSceneManager : MonoBehaviour
             if (selectedEnemy == null || !selectedEnemy.activeSelf)
             {
                 selectedEnemy = null;
-
                 var cannon = currentCharacter.GetComponent<Cannon>();
                 if (cannon != null)
                     cannon.EnableSpin(false);
@@ -223,7 +205,8 @@ public class GameSceneManager : MonoBehaviour
             HandleEnemyTurn(currentCharacter);
         }
 
-        turnOrderUI.UpdateTurnOrder(turnOrder, currentTurnIndex);
+        if (turnOrderUI != null)
+            turnOrderUI.UpdateTurnOrder(turnOrder, currentTurnIndex);
     }
 
     private void HandleEnemyTurn(BaseCharacter enemyCharacter)
