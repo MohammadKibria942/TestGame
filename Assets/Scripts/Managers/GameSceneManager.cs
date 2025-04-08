@@ -95,7 +95,8 @@ public class GameSceneManager : MonoBehaviour
 
     private void SpawnEnemies()
     {
-        int enemyCount = Mathf.Min(enemySpawnPoints.Length, 4);
+        //int enemyCount = Mathf.Min(enemySpawnPoints.Length, 4);
+        int enemyCount = 1;//just spawn in 1 enemy for testing
 
         for (int i = 0; i < enemyCount; i++)
         {
@@ -228,4 +229,22 @@ public class GameSceneManager : MonoBehaviour
 
         Invoke(nameof(NextTurn), 1.5f);
     }
+
+    public void CheckBattleOutcome()
+    {
+        bool allEnemiesDefeated = spawnedEnemies.All(e => !e.activeSelf);
+        bool allPlayersDefeated = spawnedPlayers.All(p => !p.activeSelf);
+
+        if (allEnemiesDefeated)
+        {
+            Debug.Log("All enemies defeated. Player wins!");
+            BattleEndManager.Instance.ShowResult(true);
+        }
+        else if (allPlayersDefeated)
+        {
+            Debug.Log("All players defeated. Player loses!");
+            BattleEndManager.Instance.ShowResult(false);
+        }
+    }
+
 }

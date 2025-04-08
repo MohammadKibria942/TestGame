@@ -32,6 +32,7 @@ public abstract class BaseCharacter : MonoBehaviour
         if (currentHealth <= 0)
         {
             Die();
+            GameSceneManager.Instance.CheckBattleOutcome();
         }
     }
 
